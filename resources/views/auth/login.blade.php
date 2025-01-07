@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Page</title>
+    <title>Login</title>
     <!-- Material Dashboard 2 Styles -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
-    <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
-    <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.1.0" rel="stylesheet" />
-    <!-- Custom Styles -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/material-dashboard.css?v=3.1.0">
 </head>
 <body class="bg-gray-200">
     <main class="main-content mt-0">
@@ -32,18 +28,18 @@
                                         <label class="form-label">Email</label>
                                         <input type="email" name="email" class="form-control" required>
                                         @error('email')
-                                            <div class="error-message">{{ $message }}</div>
+                                            <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
                                     <div class="input-group input-group-outline mb-3">
                                         <label class="form-label">Password</label>
                                         <input type="password" name="password" class="form-control" required>
                                         @error('password')
-                                            <div class="error-message">{{ $message }}</div>
+                                            <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
                                     <div class="form-check form-switch d-flex align-items-center mb-3">
-                                        <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+                                        <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
                                         <label class="form-check-label mb-0 ms-3" for="rememberMe">Remember me</label>
                                     </div>
                                     <div class="text-center">

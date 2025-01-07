@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -17,6 +21,24 @@ class UserController extends Controller
     /**
      * Show the form for creating a new resource.
      */
+
+
+    public function generateQrCode($id)
+    {
+        $user = User::findOrFail($id);
+        $token = Str::random(60); // Generate a random token
+
+        // Save the token to the user's record
+        $user->qr_login_token = $token;
+        $user->save();
+
+         // Generate QR code with the token
+        $data = route('user.qrlogin', ['token' => $token]);
+        $qrCode = QrCode::size(300)->generate($data);
+
+        return view('user.qrcode', compact('qrCode'));
+    }
+    
     public function create()
     {
         //

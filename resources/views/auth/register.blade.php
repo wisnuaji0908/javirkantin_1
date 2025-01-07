@@ -3,72 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register -Page</title>
-    <!-- Sertakan CSS Material Dashboard 2 -->
+    <title>Register</title>
+    <!-- Material Dashboard 2 Styles -->
     <link rel="stylesheet" href="../assets/css/material-dashboard.css?v=3.1.0">
-    <!-- Sertakan Font Awesome Icons -->
-    <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-    <!-- Gaya Tambahan -->
 </head>
-<body>
-    <main class="main-content  mt-0">
+<body class="bg-gray-200">
+    <main class="main-content mt-0">
         <section>
             <div class="page-header min-vh-100">
                 <div class="container">
                     <div class="row">
-                        <div class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 start-0 text-center justify-content-center flex-column">
-                            <div class="position-relative bg-gradient-primary h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center" style="background-image: url('../assets/img/illustrations/illustration-signup.jpg'); background-size: cover;">
-                            </div>
-                        </div>
-                        <div class="col-xl-4 col-lg-5 col-md-7 d-flex flex-column ms-auto me-auto ms-lg-auto me-lg-5">
+                        <div class="col-lg-5 col-md-7 mx-auto">
                             <div class="card card-plain">
-                                <div class="card-header">
+                                <div class="card-header text-center">
                                     <h4 class="font-weight-bolder">Register</h4>
-                                    <p class="mb-0">Masukkan email dan password untuk mendaftar</p>
+                                    <p class="mb-0">Enter your email and password to register</p>
                                 </div>
                                 <div class="card-body">
                                     <form method="POST" action="{{ route('register') }}">
                                         @csrf
                                         <div class="input-group input-group-outline mb-3">
-                                            <label class="form-label">Nama</label>
-                                            <input type="text" class="form-control" name="name" id="name" value="{{ old('name') }}" required>
+                                            <label class="form-label">Name</label>
+                                            <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
                                             @error('name')
-                                                <div class="error-message">{{ $message }}</div>
+                                                <small class="text-danger">{{ $message }}</small>
                                             @enderror
                                         </div>
                                         <div class="input-group input-group-outline mb-3">
                                             <label class="form-label">Email</label>
-                                            <input type="email" class="form-control" name="email" id="email" value="{{ old('email') }}" required>
+                                            <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
                                             @error('email')
-                                                <div class="error-message">{{ $message }}</div>
+                                                <small class="text-danger">{{ $message }}</small>
                                             @enderror
                                         </div>
                                         <div class="input-group input-group-outline mb-3">
                                             <label class="form-label">Password</label>
-                                            <input type="password" class="form-control" name="password" id="password" required>
+                                            <input type="password" name="password" class="form-control" required>
                                             @error('password')
-                                                <div class="error-message">{{ $message }}</div>
+                                                <small class="text-danger">{{ $message }}</small>
                                             @enderror
                                         </div>
                                         <div class="input-group input-group-outline mb-3">
-                                            <label class="form-label">Konfirmasi Password</label>
-                                            <input type="password" class="form-control" name="password_confirmation" id="password_confirmation" required>
-                                        </div>
-                                        <div class="form-check form-check-info text-start ps-0">
-                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked>
-                                            <label class="form-check-label" for="flexCheckDefault">
-                                                Saya setuju dengan <a href="javascript:;" class="text-dark font-weight-bolder">Syarat dan Ketentuan</a>
-                                            </label>
+                                            <label class="form-label">Confirm Password</label>
+                                            <input type="password" name="password_confirmation" class="form-control" required>
                                         </div>
                                         <div class="text-center">
-                                            <button type="submit" class="btn btn-lg bg-gradient-primary btn-lg w-100 mt-4 mb-0">Daftar</button>
+                                            <button type="submit" class="btn bg-gradient-primary w-100 my-4 mb-2">Register</button>
                                         </div>
                                     </form>
                                 </div>
-                                <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                                <div class="card-footer text-center pt-0">
                                     <p class="mb-2 text-sm mx-auto">
-                                        Sudah punya akun?
-                                        <a href="{{ route('login') }}" class="text-primary text-gradient font-weight-bold">Masuk</a>
+                                        Already have an account?
+                                        <a href="{{ route('login') }}" class="text-primary text-gradient font-weight-bold">Login</a>
                                     </p>
                                 </div>
                             </div>
@@ -78,7 +65,5 @@
             </div>
         </section>
     </main>
-    <!-- Sertakan JS Material Dashboard 2 -->
-    <script src="../assets/js/core/popper.min.js"></script>
 </body>
 </html>

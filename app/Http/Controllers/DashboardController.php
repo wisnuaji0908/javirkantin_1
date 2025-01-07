@@ -2,63 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barang;
+use App\Models\Order;
+use App\Models\Pesanan;
+use App\Models\Profile;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        return view('dashboard.home');
+        $user = Auth::user();
+        if($user->role=='admin'){
+        $today=Carbon::today()->toDateString();
+        $profile=Profile::where('user_id',session('id'))->first() ?? ['id'=> 0];
+        $order= Order::whereDate('created_at', $today)->where('status', 4);
+
+        if(!$order->where('id_profile', $profile['id'])->get()) {
+            // dd(1);
+            return view('dashboard.index',[
+            'order'=> $order,
+            'profile'=> Profile::where('id',session('id'))->get(),
+            'barang'=> Barang::all(),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+    // dd($profile['id'], auth()->user()->id_profile);
+
+        return view('dashboard.index',[
+            'order'=> $order->where('id_profile', $profile['id'])->get(),
+            'profile'=> Profile::where('id',session('id'))->get(),
+            'barang'=> Barang::all(),
+        ]);
+        }else{
+            $belomDiambil= Order::where('user_id', session(('id')))->where('status', 3)->get();
+            $proses= Order::where('user_id', session(('id')))->where('status', 2)->get();
+            $order= Order::where('user_id', session(('id')))->where('status', 1)->get();
+            return view('dashboard.index',[
+                'order' => $order->count(),
+                'belom'=>$belomDiambil->count(),
+                'proses'=>$proses->count(),
+                'profile'=> Profile::where('id',session('id'))->get(),
+            ]);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 }

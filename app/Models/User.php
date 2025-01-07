@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Notifications\ResetPasswordNotification;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'roles',
+        'id_profile',
+        'qr_login_token',
     ];
 
     /**
@@ -32,23 +34,31 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'qr_login_token',
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+
+    /**
+     * Relationship with Profile (Toko).
+     */
+    public function toko()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->belongsTo(Profile::class, 'id_profile', 'id');
     }
 
-    public function sendPasswordResetNotification($token)
+    /**
+     * Relationship with Staff (if applicable).
+     */
+    public function staff()
     {
-        $this->notify(new ResetPasswordNotification($token, $this->email));
+        return $this->belongsTo(Staff::class);
     }
 }

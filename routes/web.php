@@ -1,32 +1,78 @@
 <?php
 
+use App\Http\Controllers\BarangController;
+use App\Http\Controllers\CheckOutController;
+use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\AuthController; // Gunakan AuthController baru
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KatalogController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PesananController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ResetPasswordController;
 
+// Redirect default route ke landing page
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/landing');
 });
 
-Route::get('register', [AuthController::class, 'showRegisterForm'])->name('register');
-Route::post('register', [AuthController::class, 'register']);
-Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('login', [AuthController::class, 'login']);
-Route::post('logout', [AuthController::class, 'logout'])->name('logout');
-// Forgot Password Routes
-Route::get('/password/reset', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
-Route::post('/password/email', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
-// Reset Password Routes
-Route::get('/password/reset/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset.form');
-Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
+// ** Guest Routes **
+Route::get('/landing', [LandingController::class, 'index']);
 
+// ** Auth Routes **
+Route::controller(AuthController::class)->group(function () {
+    // Register & Login Routes
+    Route::get('/register', 'showRegisterForm')->name('register')->middleware('guest');
+    Route::post('/register', 'register')->middleware('guest');
+    Route::get('/login', 'showLoginForm')->name('login')->middleware('guest');
+    Route::post('/login', 'login')->middleware('guest');
+    Route::post('/logout', 'logout')->name('logout')->middleware('auth');
+
+    // Email Verification
+    Route::get('/verify-email/{id}', 'verifyEmail')->name('verify.email');
+
+    // Password Reset Routes
+    Route::get('/forgot-password', 'showForgotPasswordForm')->name('password.request')->middleware('guest');
+    Route::post('/forgot-password', 'sendResetLinkEmail')->name('password.email')->middleware('guest');
+    Route::get('/reset-password/{token}', 'showResetPasswordForm')->name('password.reset.form')->middleware('guest');
+    Route::post('/reset-password', 'resetPassword')->name('password.update')->middleware('guest');
+
+    // QR Login Route
+    Route::get('/qr-login/{token}', 'qrLogin')->name('qr.login')->middleware('guest');
+});
+
+// ** Dashboard (Admin & Customer) **
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth');
+
+// ** Admin Routes **
 Route::middleware(['auth', 'admin'])->group(function () {
-    Route::resource('dashboard', \App\Http\Controllers\DashboardController::class);
-    Route::resource('siswa', \App\Http\Controllers\SiswaController::class);
-    Route::resource('kelas', \App\Http\Controllers\KelasController::class);
+    // Tabel Routes
+    Route::resource('/table/profile', ProfileController::class);
+    Route::resource('/table/barang', BarangController::class);
+
+    // Transaksi Routes
+    Route::resource('/transaction/order', OrderController::class);
+    Route::resource('/transaction/checkout', PesananController::class);
 });
 
+// ** Customer Routes **
 Route::middleware(['auth', 'customer'])->group(function () {
-    Route::resource('user', \App\Http\Controllers\UserController::class);
+    // Order Routes
+    Route::get('/order', [CheckOutController::class, 'index']);
+    Route::get('/order/create', [CheckOutController::class, 'create']);
+    Route::post('/order', [KatalogController::class, 'store']);
+    Route::post('/order/store', [CheckOutController::class, 'store']);
+    Route::put('/order/update', [CheckOutController::class, 'update']);
+    Route::get('/order/destroy', [OrderController::class, 'destroy']);
+
+    // Wishlist Routes
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::get('/wishlist/create', [WishlistController::class, 'create']);
+});
+
+// Middleware untuk Member (Customer yang sudah punya membership)
+Route::middleware(['auth', 'member'])->group(function () {
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::get('/wishlist/create', [WishlistController::class, 'create']);
 });

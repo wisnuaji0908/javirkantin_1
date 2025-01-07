@@ -7,17 +7,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
+    // Show Register Form
     public function showRegisterForm()
     {
         return view('auth.register');
     }
 
+    // Process Registration
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -30,28 +32,53 @@ class AuthController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'roles' => 'customer'
+            'role' => 'customer',
         ]);
 
-        return redirect()->route('login');
+        // Send Verification Email
+        $verificationLink = route('verify.email', ['id' => $user->id]);
+        Mail::raw("Click the following link to verify your email: $verificationLink", function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Verify Your Email');
+        });
+
+        return redirect()->route('login')->with('success', 'Account created. Please check your email to verify.');
     }
 
+    // Verify Email
+    public function verifyEmail($id)
+    {
+        $user = User::findOrFail($id);
+        $user->email_verified_at = now();
+        $user->save();
+
+        return redirect()->route('login')->with('success', 'Email verified successfully.');
+    }
+
+    // Show Login Form
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
+    // Process Login
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            if ($user->roles === 'admin') {
+
+            if (is_null($user->email_verified_at)) {
+                Auth::logout();
+                return redirect()->back()->withErrors(['email' => 'Please verify your email first.']);
+            }
+
+            if ($user->role === 'admin') {
                 return redirect('dashboard');
             } else {
                 return redirect('/user');
@@ -61,17 +88,20 @@ class AuthController extends Controller
         return redirect()->back()->withErrors(['email' => 'Invalid credentials'])->withInput();
     }
 
+    // Logout
     public function logout()
     {
         Auth::logout();
         return redirect()->route('login');
     }
 
+    // Show Forgot Password Form
     public function showForgotPasswordForm()
     {
         return view('auth.forgot-password');
     }
 
+    // Send Reset Link Email
     public function sendResetLinkEmail(Request $request)
     {
         $request->validate(['email' => 'required|email']);
@@ -79,45 +109,36 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return back()->with('status', 'email_not_found');
+            return back()->with('status', 'Email not found.');
         }
 
-        if ($user->roles === 'admin') {
-            return back()->with('status', 'admin_reset_error');
-        }
-
-        // Generate a token and insert into password_resets table
         $token = Str::random(60);
-        DB::table('password_resets')->insert([
-            'email' => $request->email,
-            'token' => $token,
-            'created_at' => now()
-        ]);
+        DB::table('password_resets')->updateOrInsert(
+            ['email' => $request->email],
+            ['token' => $token, 'created_at' => now()]
+        );
 
-        // Log the reset password link
-        $resetLink = route('password.reset.form', ['token' => $token, 'email' => $request->email]);
-        Log::info("Reset Password Link for {$request->email}: $resetLink");
+        $resetLink = route('password.reset.form', ['token' => $token]);
+        Mail::raw("Reset your password using the following link: $resetLink", function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Reset Your Password');
+        });
 
-        return back()->with('status', 'Password reset link has been sent to your email. Please check the logs for the reset link.');
+        return back()->with('status', 'Password reset link sent to your email.');
     }
 
-
-    public function showResetPasswordForm($token, Request $request)
+    // Show Reset Password Form
+    public function showResetPasswordForm($token)
     {
-        $reset = DB::table('password_resets')->where('token', $token)->first();
-
-        if (!$reset) {
-            return redirect()->route('login')->withErrors(['token' => 'Invalid token']);
-        }
-
-        return view('auth.reset-password', ['token' => $token, 'email' => $reset->email]);
+        return view('auth.reset-password', ['token' => $token]);
     }
 
+    // Process Reset Password
     public function resetPassword(Request $request)
     {
         $request->validate([
             'password' => 'required|string|min:3|confirmed',
-            'token' => 'required'
+            'token' => 'required',
         ]);
 
         $reset = DB::table('password_resets')->where('token', $request->token)->first();
@@ -128,20 +149,27 @@ class AuthController extends Controller
 
         $user = User::where('email', $reset->email)->first();
 
-        if (!$user) {
-            return redirect()->back()->withErrors(['email' => 'Email not found']);
-        }
-
-        if ($user->roles === 'admin') {
-            return redirect()->back()->withErrors(['email' => 'Admin cannot reset password']);
-        }
-
-        // Update user password
         $user->update(['password' => Hash::make($request->password)]);
-
-        // Remove reset token from database
         DB::table('password_resets')->where('email', $reset->email)->delete();
 
         return redirect()->route('login')->with('status', 'Password has been reset!');
+    }
+
+    // QR Login
+    public function qrLogin($token)
+    {
+        $user = User::where('qr_login_token', $token)->first();
+
+        if ($user) {
+            Auth::login($user);
+
+            if ($user->role === 'admin') {
+                return redirect()->route('dashboard.home');
+            } elseif ($user->role === 'customer') {
+                return redirect()->route('user.index');
+            }
+        }
+
+        return redirect()->route('login')->withErrors(['Invalid or expired QR code']);
     }
 }
