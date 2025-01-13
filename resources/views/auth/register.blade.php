@@ -6,6 +6,19 @@
     <title>Register</title>
     <!-- Material Dashboard 2 Styles -->
     <link rel="stylesheet" href="../assets/css/material-dashboard.css?v=3.1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .password-container {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body class="bg-gray-200">
     <main class="main-content mt-0">
@@ -36,16 +49,22 @@
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
                                         </div>
-                                        <div class="input-group input-group-outline mb-3">
+                                        <div class="input-group input-group-outline mb-3 password-container">
                                             <label class="form-label">Password</label>
-                                            <input type="password" name="password" class="form-control" required>
+                                            <input type="password" id="password" name="password" class="form-control" required>
+                                            <span class="toggle-password" onclick="togglePasswordVisibility('password', 'eyeIconPassword')">
+                                                <i id="eyeIconPassword" class="material-icons">visibility_off</i>
+                                            </span>
                                             @error('password')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
                                         </div>
-                                        <div class="input-group input-group-outline mb-3">
+                                        <div class="input-group input-group-outline mb-3 password-container">
                                             <label class="form-label">Confirm Password</label>
-                                            <input type="password" name="password_confirmation" class="form-control" required>
+                                            <input type="password" id="password_confirmation" name="password_confirmation" class="form-control" required>
+                                            <span class="toggle-password" onclick="togglePasswordVisibility('password_confirmation', 'eyeIconConfirmPassword')">
+                                                <i id="eyeIconConfirmPassword" class="material-icons">visibility_off</i>
+                                            </span>
                                         </div>
                                         <div class="text-center">
                                             <button type="submit" class="btn bg-gradient-primary w-100 my-4 mb-2">Register</button>
@@ -65,5 +84,32 @@
             </div>
         </section>
     </main>
+    <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(iconId);
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.textContent = 'visibility';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.textContent = 'visibility_off';
+            }
+
+            if (passwordInput.value) {
+                passwordInput.closest('.input-group').classList.add('is-filled');
+            }
+        }
+
+        document.querySelectorAll('.input-group input').forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.value) {
+                    input.closest('.input-group').classList.add('is-filled');
+                } else {
+                    input.closest('.input-group').classList.remove('is-filled');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

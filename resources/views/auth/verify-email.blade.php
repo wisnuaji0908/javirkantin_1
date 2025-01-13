@@ -66,7 +66,7 @@
         <div class="content">
             <p>Hi {{ $user->name }},</p>
             <p>Thank you for signing up. Please click the button below to verify your email address.</p>
-            <a href="{{ $url }}">Verify Email</a>
+            <p><a href="{{ $reset_link }}">Reset Password</a></p>
             <p>If you did not create an account, no further action is required.</p>
         </div>
         <div class="footer">

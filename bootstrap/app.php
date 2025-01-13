@@ -13,8 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         // Alias middleware
         $middleware->alias([
-            'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'customer' => \App\Http\Middleware\CustomerMiddleware::class,
+            // 'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            // 'customer' => \App\Http\Middleware\CustomerMiddleware::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
             'sweetalert' => \RealRashid\SweetAlert\ToSweetAlert::class, // Tambahin alias middleware SweetAlert
         ]);
     })

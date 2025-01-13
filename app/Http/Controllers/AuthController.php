@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Mail\CustomEmail;
 
 class AuthController extends Controller
 {
@@ -36,15 +37,18 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'customer',
+            'role' => 'pembeli',
         ]);
 
-        // Send Verification Email
+        // Kirim email verifikasi menggunakan CustomEmail
         $verificationLink = route('verify.email', ['id' => $user->id]);
-        Mail::raw("Click the following link to verify your email: $verificationLink", function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('Verify Your Email');
-        });
+        $emailData = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'reset_link' => $verificationLink,
+        ];
+
+        Mail::to($user->email)->send(new CustomEmail($emailData, $user, $verificationLink));
 
         return redirect()->route('login')->with('success', 'Account created. Please check your email to verify.');
     }
@@ -78,10 +82,18 @@ class AuthController extends Controller
                 return redirect()->back()->withErrors(['email' => 'Please verify your email first.']);
             }
 
-            if ($user->role === 'admin') {
-                return redirect('dashboard');
-            } else {
-                return redirect('/user');
+            // Redirect Based on Role
+            // Redirect berdasarkan role
+            switch ($user->role) {
+                case 'admin':
+                    return redirect()->route('admin.dashboard');
+                case 'penjual':
+                    return redirect()->route('seller.dashboard');
+                case 'pembeli':
+                    return redirect()->route('buyer.dashboard');
+                default:
+                    Auth::logout();
+                    return redirect()->route('login')->withErrors(['role' => 'Invalid role!']);
             }
         }
 
@@ -118,11 +130,19 @@ class AuthController extends Controller
             ['token' => $token, 'created_at' => now()]
         );
 
-        $resetLink = route('password.reset.form', ['token' => $token]);
-        Mail::raw("Reset your password using the following link: $resetLink", function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('Reset Your Password');
-        });
+        $resetLink = route('password.reset.form', [
+            'token' => $token,
+            'email' => $user->email, // Tambahkan email ke query string
+        ]);
+
+        // Tambahkan data yang akan digunakan di email
+        $data = [
+            'name' => $user->name, // Nama user
+            'email' => $user->email, // Email user
+            'reset_link' => $resetLink, // Link reset password
+        ];
+
+        Mail::to($user->email)->send(new CustomEmail($data, $user, $resetLink));
 
         return back()->with('status', 'Password reset link sent to your email.');
     }

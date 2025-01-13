@@ -50,6 +50,7 @@
         }
         .form-group {
             margin-bottom: 20px;
+            position: relative;
         }
         .form-group label {
             display: block;
@@ -63,6 +64,15 @@
             border-radius: 4px;
             font-size: 14px;
             box-sizing: border-box;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 60%;
+            transform: translateY(-40%); /* Sedikit turunin posisinya */;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333; /* Optional, biar lebih keliatan */
         }
         .error-message {
             color: red;
@@ -99,10 +109,15 @@
         <form method="POST" action="{{ route('password.update') }}" role="form">
             @csrf
             <input type="hidden" name="token" value="{{ $token }}">
-            <input type="hidden" name="email" value="{{ $email }}">
+            <input type="hidden" name="email" value="{{ request()->email }}">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" value="{{ request()->email }}" readonly>
+            </div>
             <div class="form-group">
                 <label for="password">New Password</label>
                 <input type="password" id="password" name="password" required>
+                <span class="toggle-password" onclick="togglePassword('password')">👁️</span>
                 @error('password')
                     <div class="error-message">{{ $message }}</div>
                 @enderror
@@ -110,6 +125,7 @@
             <div class="form-group">
                 <label for="password_confirmation">Confirm New Password</label>
                 <input type="password" id="password_confirmation" name="password_confirmation" required>
+                <span class="toggle-password" onclick="togglePassword('password_confirmation')">👁️</span>
             </div>
             <button type="submit" class="btn">Reset Password</button>
         </form>
@@ -117,5 +133,16 @@
             <a href="{{ route('login') }}" class="back-link">Back to Login</a>
         </p>
     </div>
+
+    <script>
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+            } else {
+                passwordField.type = "password";
+            }
+        }
+    </script>
 </body>
 </html>
