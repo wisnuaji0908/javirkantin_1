@@ -7,6 +7,19 @@
     <!-- Material Dashboard 2 Styles -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/material-dashboard.css?v=3.1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .password-container {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body class="bg-gray-200">
     <main class="main-content mt-0">
@@ -31,9 +44,12 @@
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
-                                    <div class="input-group input-group-outline mb-3">
+                                    <div class="input-group input-group-outline mb-3 password-container">
                                         <label class="form-label">Password</label>
-                                        <input type="password" name="password" class="form-control" required>
+                                        <input type="password" id="password" name="password" class="form-control" required>
+                                        <span class="toggle-password" onclick="togglePasswordVisibility()">
+                                            <i id="eyeIcon" class="material-icons">visibility_off</i>
+                                        </span>
                                         @error('password')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
@@ -60,5 +76,33 @@
             </div>
         </div>
     </main>
+    <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.textContent = 'visibility';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.textContent = 'visibility_off';
+            }
+
+            if (passwordInput.value) {
+                passwordInput.closest('.input-group').classList.add('is-filled');
+            }
+        }
+
+        document.querySelectorAll('.input-group input').forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.value) {
+                    input.closest('.input-group').classList.add('is-filled');
+                } else {
+                    input.closest('.input-group').classList.remove('is-filled');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

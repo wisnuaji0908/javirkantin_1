@@ -18,6 +18,9 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        Verified::class => [ // Tambahin mapping ini
+            VerifiedListener::class,
+        ],
     ];
 
     /**
