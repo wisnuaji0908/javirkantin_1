@@ -2,13 +2,9 @@
 
 @section('title', 'Dashboard Buyer')
 
-@section('sidebar')
-    @include('buyer.sidebar')
-@endsection
-
 @section('page-title', 'Dashboard Buyer')
 
-@section('main')
+@section('content')
+    @include('buyer.main')
     @include('buyer.dashboard')
-    {{-- @include('dashboard.profile-modal') --}}
 @endsection
