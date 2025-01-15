@@ -1,14 +1,9 @@
 @extends('seller.master')
 
-@section('title', 'Dashboard seller')
+@section('title', 'Dashboard Seller')
 
-@section('sidebar')
-    @include('seller.sidebar')
-@endsection
+@section('page-title', 'Dashboard Seller')
 
-@section('page-title', 'Dashboard seller')
-
-@section('main')
+@section('content')
     @include('seller.dashboard')
-    {{-- @include('dashboard.profile-modal') --}}
 @endsection

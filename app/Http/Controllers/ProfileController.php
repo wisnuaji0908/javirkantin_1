@@ -2,127 +2,58 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Profile;
-use App\Http\Requests\StoreProfileRequest;
-use App\Http\Requests\UpdateProfileRequest;
-use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $cek_profile= Profile::where('user_id', session('id'))->get()->count();
-        // dd($cek_profile);
-        return view('table.profile.index',[
-            'profile'=> Profile::where('user_id', session('id'))->get(),
-            'cek'=>$cek_profile,
-            'lokasi'=>["MM", "TP"],
-            'label'=>["Makanan", "Minuman", "ATK", "Dan lainnya"],
+        return view('buyer.profile.index');
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'current_password' => 'nullable|string',
+            'password' => 'nullable|string|min:8|confirmed',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validasi file gambar
         ]);
-    }
 
-    public function store(Request $request)
-    {
-        $cek=Profile::count();
-        $request['nomor_toko']= $cek + 1;
-        $userId= session('id');
-        $request['user_id']= $userId;
-        // dd($request);
-        try {
-            $data= $request->validate([
-                'nama_toko'=>'required',
-                'nomor_toko'=>['required','numeric'],
-                'nomor_telp'=>['required','numeric'],
-                'user_id'=>['required','numeric'],
-                'lokasi'=>['required'],
-                'label'=>['nullable'],
-                'deskripsi_toko'=>['nullable'],
-            ]);
-            //buat ambil id  user
-            $store= Profile::create($data);
-            if($store){
-                $set= User::where('id',$store->user_id)->update(['id_profile'=>$store->id]);
-                if(!$set){
-                    toast('Data gagal ditambahkan!','success');
-                    return back();
-                }
-                toast('Data berhasil ditambahkan!','success');
-                return redirect('/table/profile');
-            };
-            return back()->with('error', 'gagal tambah data profile');
-        } catch (\Exception $e) {
-            $errorMessage = $e->getMessage();
+        $user = auth()->user();
 
-            // Anda juga dapat menambahkan kode status tertentu, misalnya:
-            $statusCode = 500; // Internal Server Error
+        // Update nama
+        $user->name = $request->name;
 
-            // Kembalikan respon dengan pesan kesalahan
-            return response()->json(['error' => $errorMessage], $statusCode);
+        // Update profile_image jika ada file baru
+        if ($request->hasFile('profile_image')) {
+            // Hapus gambar lama jika ada
+            if ($user->profile_image) {
+                \Storage::delete($user->profile_image);
+            }
+
+            // Simpan gambar baru
+            $path = $request->file('profile_image')->store('avatars', 'public');
+            $user->profile_image = $path;
         }
 
-    }
+        // Jika ada input current_password, cek validitasnya
+        if ($request->filled('current_password')) {
+            if (!Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'Password saat ini salah']);
+            }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Profile $profile)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Profile $profile)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Profile $profile)
-    {
-        try {
-            $data= $request->validate([
-                'nama_toko'=>'required',
-                'nomor_telp'=>['required','numeric'],
-                'lokasi'=>['required'],
-                'label'=>['nullable'],
-                'deskripsi_toko'=>['nullable'],
-            ]);
-            //buat ambil id  user
-            $store= $profile->update($data);
-            if($store){
-                toast('Data berhasil diupdate!','success');
-                return redirect('/table/profile');
-            };
-            return back()->with('error', 'gagal tambah data profile');
-        } catch (\Exception $e) {
-            $errorMessage = $e->getMessage();
-
-            // Anda juga dapat menambahkan kode status tertentu, misalnya:
-            $statusCode = 500; // Internal Server Error
-
-            // Kembalikan respon dengan pesan kesalahan
-            return response()->json(['error' => $errorMessage], $statusCode);
+            // Jika valid, ganti password dengan yang baru
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
         }
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Profile $profile)
-    {
-        $profile->delete();
-        $set= User::where('id',$profile->user_id)->update(['id_profile'=>'0']);
-        if($set){
-            toast('Data berhasil dihapus!','success');
-            return back();
-        }
+        $user->save();
+
+        // Tambahkan flash message
+        return back()->with('success', 'Profil berhasil diperbarui!');
     }
 }

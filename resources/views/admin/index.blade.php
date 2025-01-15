@@ -1,14 +1,9 @@
 @extends('admin.master')
 
-@section('title', 'Dashboard Admin')
+@section('title', 'Dashboard admin')
 
-@section('sidebar')
-    @include('admin.sidebar')
-@endsection
+@section('page-title', 'Dashboard admin')
 
-@section('page-title', 'Dashboard Admin')
-
-@section('main')
+@section('content')
     @include('admin.dashboard')
-    {{-- @include('dashboard.profile-modal') --}}
 @endsection

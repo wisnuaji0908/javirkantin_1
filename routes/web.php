@@ -3,7 +3,7 @@
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\CheckOutController;
 use App\Http\Controllers\WishlistController;
-use App\Http\Controllers\AuthController; // Gunakan AuthController baru
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BuyerController;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\AdminController;
@@ -12,8 +12,9 @@ use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PesananController;
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\EmailChangeController;
 
 // Redirect default route ke landing page
 Route::get('/', function () {
@@ -29,7 +30,6 @@ Route::get('/', function () {
     }
     return redirect('/landing');
 });
-
 
 // ** Guest Routes **
 Route::get('/landing', [LandingController::class, 'index']);
@@ -50,10 +50,10 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('/forgot-password', 'showForgotPasswordForm')->name('password.request')->middleware('guest');
     Route::post('/forgot-password', 'sendResetLinkEmail')->name('password.email')->middleware('guest');
     Route::get('/reset-password/{token}', function ($token) {
-        $email = request('email'); // Ambil email dari query string
+        $email = request('email');
         return view('auth.reset-password', [
             'token' => $token,
-            'email' => $email, // Pastikan email disertakan
+            'email' => $email,
         ]);
     })->middleware('guest')->name('password.reset.form');
     Route::post('/reset-password', 'resetPassword')->name('password.update')->middleware('guest');
@@ -75,7 +75,21 @@ Route::middleware(['auth', 'role:penjual'])->group(function () {
 // Dashboard Pembeli
 Route::middleware(['auth', 'role:pembeli'])->group(function () {
     Route::get('/buyer/dashboard', [BuyerController::class, 'index'])->name('buyer.dashboard');
+
+    // ** Profile Routes **
+    Route::controller(ProfileController::class)->prefix('profile')->name('profile.buyer.')->group(function () {
+        Route::get('/', 'index')->name('index'); // Halaman Profile
+        Route::post('/update', 'update')->name('update'); // Update Profile
+    });
+
+    // ** Change Email Routes **
+    Route::controller(EmailChangeController::class)->prefix('profile/email')->name('profile.email.')->group(function () {
+        Route::post('/send-reset-link', 'sendResetLink')->name('send-reset-link'); // Kirim link reset email
+        Route::get('/reset', 'showResetForm')->name('reset'); // Halaman reset email
+        Route::post('/reset', 'updateEmail')->name('update'); // Update email
+    });
 });
+
 
 
 // // ** Dashboard (Admin & Customer) **
