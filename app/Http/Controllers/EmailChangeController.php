@@ -12,7 +12,8 @@ class EmailChangeController extends Controller
     {
         $user = Auth::user();
 
-        $resetLink = route('profile.email.reset', [
+        // Generate unique token based on email and role
+        $resetLink = route('profile.' . $user->role . '.email.reset', [
             'token' => base64_encode($user->email),
         ]);
 
@@ -28,7 +29,19 @@ class EmailChangeController extends Controller
     {
         $email = base64_decode($request->token);
 
-        return view('buyer.profile.reset-email', ['email' => $email]);
+        // Tentukan folder berdasarkan role
+        $role = Auth::user()->role;
+        $viewPath = match ($role) {
+            'admin' => 'admin.profile.reset-email',
+            'buyer' => 'buyer.profile.reset-email',
+            'seller' => 'seller.profile.reset-email', // Untuk seller
+            default => abort(404), // Jika role tidak dikenali
+        };
+
+        return view($viewPath, [
+            'email' => $email,
+            'role' => $role, // Untuk keperluan lain di view
+        ]);
     }
 
     public function updateEmail(Request $request)
@@ -47,6 +60,8 @@ class EmailChangeController extends Controller
         $user->email = $request->new_email;
         $user->save();
 
-        return redirect()->route('buyer.dashboard')->with('success', 'Email berhasil diubah!');
+        return redirect()
+            ->route('profile.' . $user->role . '.index') // Redirect dynamically based on role
+            ->with('success', 'Email berhasil diubah!');
     }
 }

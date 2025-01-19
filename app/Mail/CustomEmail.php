@@ -17,11 +17,11 @@ class CustomEmail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct($data, $user, $resetLink)
+    public function __construct($data, $user, $resetLink = null)
     {
         $this->data = $data; // Tetap kirim $data
         $this->user = $user; // Inisialisasi data user
-        $this->resetLink = $resetLink; // Inisialisasi reset link
+        $this->resetLink = $resetLink; // Optional: untuk reset password
     }
 
     /**
@@ -29,12 +29,23 @@ class CustomEmail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Reset Your Password')
-            ->view('auth.verify-email') // Pastikan path view sesuai
-            ->with([
-                'data' => $this->data, // Kirim data tambahan
-                'user' => $this->user, // Kirim data user
-                'reset_link' => $this->resetLink, // Kirim reset link
-            ]);
+        // Cek apakah ini reset password atau verifikasi email
+        if ($this->resetLink) {
+            // Reset Password Email
+            return $this->subject('Reset Your Password')
+                ->view('auth.reset-password-email') // View khusus reset password
+                ->with([
+                    'user' => $this->user, // Data user
+                    'reset_link' => $this->resetLink, // Reset link
+                ]);
+        } else {
+            // Verify Email
+            return $this->subject('Verify Your Email')
+                ->view('auth.verify-email') // View khusus verifikasi email
+                ->with([
+                    'user' => $this->user, // Data user
+                    'verification_link' => $this->data['reset_link'], // Verification link
+                ]);
+        }
     }
 }

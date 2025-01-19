@@ -1,9 +1,10 @@
 @extends('admin.master')
 
-@section('title', 'Dashboard admin')
+@section('title', 'Dashboard Admin')
 
-@section('page-title', 'Dashboard admin')
+@section('page-title', 'Dashboard Admin')
 
 @section('content')
+    @include('admin.main')
     @include('admin.dashboard')
 @endsection

@@ -37,7 +37,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'pembeli',
+            'role' => 'buyer',
         ]);
 
         // Kirim email verifikasi menggunakan CustomEmail
@@ -48,7 +48,7 @@ class AuthController extends Controller
             'reset_link' => $verificationLink,
         ];
 
-        Mail::to($user->email)->send(new CustomEmail($emailData, $user, $verificationLink));
+        Mail::to($user->email)->send(new CustomEmail($emailData, $user));
 
         return redirect()->route('login')->with('success', 'Account created. Please check your email to verify.');
     }
@@ -87,9 +87,9 @@ class AuthController extends Controller
             switch ($user->role) {
                 case 'admin':
                     return redirect()->route('admin.dashboard');
-                case 'penjual':
+                case 'seller':
                     return redirect()->route('seller.dashboard');
-                case 'pembeli':
+                case 'buyer':
                     return redirect()->route('buyer.dashboard');
                 default:
                     Auth::logout();

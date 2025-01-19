@@ -12,7 +12,7 @@ class="brand-image opacity-75 shadow"
 />
 <!--end::Brand Image-->
 <!--begin::Brand Text-->
-<span class="brand-text fw-light">admin</span>
+<span class="brand-text fw-light">Admin</span>
 <!--end::Brand Text-->
 </a>
 <!--end::Brand Link-->
@@ -29,9 +29,15 @@ role="menu"
 data-accordion="false"
 >
 <li class="nav-item">
-<a href="./generate/theme.html" class="nav-link">
+    <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+    <i class="fa-solid fa-gauge"></i>
+    <p>Dashboard</p>
+    </a>
+    </li>
+<li class="nav-item">
+    <a href="{{ route('admin.sellers.index') }}" class="nav-link {{ request()->routeIs('admin.sellers.index') ? 'active' : '' }}">
 <i class="nav-icon bi bi-palette"></i>
-<p>Theme Generate</p>
+<p>Seller</p>
 </a>
 </li>
 <li class="nav-item">
@@ -180,7 +186,14 @@ Tables
 </li>
 </ul>
 </li>
-<li class="nav-header">EXAMPLES</li>
+<li class="nav-header">PENGATURAN</li>
+<li class="nav-item">
+    <a href="{{ route('profile.admin.index') }}" class="nav-link {{ request()->routeIs('profile.admin.index') ? 'active' : '' }}">
+        <i class="fa-solid fa-user"></i>
+        <p>Profile</p>
+    </a>
+</li>
+
 <li class="nav-item">
     <a href="#" class="nav-link logout-btn">
         <i class="nav-icon bi bi-box-arrow-right"></i>

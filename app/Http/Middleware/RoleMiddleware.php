@@ -19,18 +19,17 @@ class RoleMiddleware
 
         $userRole = Auth::user()->role;
 
+        // Cek apakah role sesuai
         if ($userRole !== $role) {
-            switch ($userRole) {
-                case 'admin':
-                    return redirect()->route('admin.dashboard');
-                case 'penjual':
-                    return redirect()->route('seller.dashboard');
-                case 'pembeli':
-                    return redirect()->route('buyer.dashboard');
-                default:
-                    \Log::info("Role mismatch: User role is $userRole, required role is $role");
-                    return abort(403, 'Unauthorized');
-            }
+            \Log::info("Role mismatch: User role is $userRole, required role is $role");
+
+            // Redirect ke dashboard berdasarkan role
+            return match ($userRole) {
+                'admin' => redirect()->route('admin.dashboard'),
+                'seller' => redirect()->route('seller.dashboard'),
+                'buyer' => redirect()->route('buyer.dashboard'),
+                default => abort(403, 'Unauthorized'), // Handle role tidak dikenal
+            };
         }
 
         return $next($request);

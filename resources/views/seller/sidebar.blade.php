@@ -29,6 +29,12 @@ role="menu"
 data-accordion="false"
 >
 <li class="nav-item">
+    <a href="{{ route('seller.dashboard') }}" class="nav-link {{ request()->routeIs('seller.dashboard') ? 'active' : '' }}">
+    <i class="fa-solid fa-gauge"></i>
+    <p>Dashboard</p>
+    </a>
+    </li>
+<li class="nav-item">
 <a href="./generate/theme.html" class="nav-link">
 <i class="nav-icon bi bi-palette"></i>
 <p>Theme Generate</p>
@@ -180,7 +186,14 @@ Tables
 </li>
 </ul>
 </li>
-<li class="nav-header">EXAMPLES</li>
+<li class="nav-header">PENGATURAN</li>
+<li class="nav-item">
+    <a href="{{ route('profile.seller.index') }}" class="nav-link {{ request()->routeIs('profile.seller.index') ? 'active' : '' }}">
+        <i class="fa-solid fa-user"></i>
+        <p>Profile</p>
+    </a>
+</li>
+
 <li class="nav-item">
     <a href="#" class="nav-link logout-btn">
         <i class="nav-icon bi bi-box-arrow-right"></i>
