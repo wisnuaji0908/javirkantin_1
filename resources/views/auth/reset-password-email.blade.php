@@ -60,14 +60,14 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="{{ url('image/logo.png') }}" alt="Logo">
-            <h1>Reset Email Link</h1>
+            <img src="{{ asset('images/logo.png') }}" alt="Logo">
+            <h1>Reset Your Password</h1>
         </div>
         <div class="content">
-            <p>Hallo</p>
-            <p>Kami menerima permintaan untuk mengubah email Anda. Klik link di bawah ini untuk melanjutkan:</p>
-            <p><a href="{{ $resetLink }}">Reset Email</a></p>
-            <p>Jika Anda tidak merasa meminta perubahan ini, abaikan email ini.</p>
+            <p>Hi {{ $user->name }},</p>
+            <p>Kami telah Menerima Permintaan Pergantian Password Pada Akun Anda, Silahkan Klik Link Berikut...</p>
+            <p><a href="{{ $reset_link }}">Reset Password</a></p>
+            <p>Jika kamu tidak ingin mengganti password, silahkan abaikan pesan ini terima kasih.</p>
         </div>
         <div class="footer">
             <p>© {{ date('Y') }} Javir Kantin. All rights reserved.</p>

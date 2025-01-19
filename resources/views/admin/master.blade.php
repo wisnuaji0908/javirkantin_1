@@ -38,13 +38,17 @@
       integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0="
       crossorigin="anonymous"
     />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css">
 </head>
 <body class="layout-fixed sidebar-mini bg-body-tertiary">
 <div class="app-wrapper">
 
 <!-- Header -->
 @include('admin.sidebar')
-@include('admin.main')
+{{-- @include('admin.main') --}}
 @yield('content')
 </div>
 
@@ -98,6 +102,7 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const logoutBtn = document.querySelector('.logout-btn');

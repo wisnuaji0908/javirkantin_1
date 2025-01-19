@@ -186,7 +186,7 @@ Tables
 </li>
 </ul>
 </li>
-<li class="nav-header">Pengaturan</li>
+<li class="nav-header">PENGATURAN</li>
 <li class="nav-item">
     <a href="{{ route('profile.buyer.index') }}" class="nav-link {{ request()->routeIs('profile.buyer.index') ? 'active' : '' }}">
         <i class="fa-solid fa-user"></i>

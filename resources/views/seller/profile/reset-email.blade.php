@@ -1,4 +1,4 @@
-@extends('buyer.master')
+@extends('seller.master')
 
 @section('content')
 <div class="container">

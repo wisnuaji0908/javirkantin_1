@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\CheckOutController;
 use App\Http\Controllers\WishlistController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PesananController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SellerProfileController;
 use App\Http\Controllers\EmailChangeController;
 
 // Redirect default route ke landing page
@@ -24,7 +26,7 @@ Route::get('/', function () {
                 return redirect()->route('admin.dashboard');
             case 'penjual':
                 return redirect()->route('seller.dashboard');
-            case 'pembeli':
+            case 'buyer':
                 return redirect()->route('buyer.dashboard');
         }
     }
@@ -65,29 +67,77 @@ Route::controller(AuthController::class)->group(function () {
 // Dashboard Admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
-});
 
-// Dashboard Penjual
-Route::middleware(['auth', 'role:penjual'])->group(function () {
-    Route::get('/seller/dashboard', [SellerController::class, 'index'])->name('seller.dashboard');
-});
-
-// Dashboard Pembeli
-Route::middleware(['auth', 'role:pembeli'])->group(function () {
-    Route::get('/buyer/dashboard', [BuyerController::class, 'index'])->name('buyer.dashboard');
-
-    // ** Profile Routes **
-    Route::controller(ProfileController::class)->prefix('profile')->name('profile.buyer.')->group(function () {
+    // ** Profile Routes (Admin) **
+    Route::controller(AdminProfileController::class)->prefix('admin/profile')->name('profile.admin.')->group(function () {
         Route::get('/', 'index')->name('index'); // Halaman Profile
         Route::post('/update', 'update')->name('update'); // Update Profile
     });
 
-    // ** Change Email Routes **
-    Route::controller(EmailChangeController::class)->prefix('profile/email')->name('profile.email.')->group(function () {
-        Route::post('/send-reset-link', 'sendResetLink')->name('send-reset-link'); // Kirim link reset email
-        Route::get('/reset', 'showResetForm')->name('reset'); // Halaman reset email
-        Route::post('/reset', 'updateEmail')->name('update'); // Update email
+    // Change Email Routes for Admin
+    Route::controller(EmailChangeController::class)
+        ->prefix('admin/profile/email')
+        ->name('profile.admin.email.')
+        ->middleware(['auth', 'role:admin'])
+        ->group(function () {
+            Route::post('/send-reset-link', 'sendResetLink')->name('send-reset-link'); // Kirim link reset email
+            Route::get('/reset', 'showResetForm')->name('reset'); // Halaman reset email
+            Route::post('/reset', 'updateEmail')->name('update'); // Update email
+        });
+
+    // ** Seller Management Routes **
+    Route::prefix('admin/sellers')->name('admin.sellers.')->group(function () {
+        Route::get('/', [AdminController::class, 'showSellers'])->name('index'); // List Seller
+        Route::get('/create', [AdminController::class, 'createSeller'])->name('create'); // Form Tambah Seller
+        Route::post('/', [AdminController::class, 'storeSeller'])->name('store'); // Simpan Seller Baru
+        Route::get('/{id}/edit', [AdminController::class, 'editSeller'])->name('edit'); // Form Edit Seller
+        Route::put('/{id}', [AdminController::class, 'updateSeller'])->name('update'); // Update Seller
+        Route::delete('/{id}', [AdminController::class, 'deleteSeller'])->name('delete'); // Hapus Seller
     });
+});
+
+// Dashboard Penjual
+Route::middleware(['auth', 'role:seller'])->group(function () {
+    Route::get('/seller/dashboard', [SellerController::class, 'index'])->name('seller.dashboard');
+
+    // ** Profile Routes (Seller) **
+    Route::controller(SellerProfileController::class)->prefix('seller/profile')->name('profile.seller.')->group(function () {
+        Route::get('/', 'index')->name('index'); // Halaman Profile
+        Route::post('/update', 'update')->name('update'); // Update Profile
+    });
+
+    // Change Email Routes for Seller
+    Route::controller(EmailChangeController::class)
+        ->prefix('seller/profile/email')
+        ->name('profile.seller.email.')
+        ->middleware(['auth', 'role:seller'])
+        ->group(function () {
+            Route::post('/send-reset-link', 'sendResetLink')->name('send-reset-link'); // Kirim link reset email
+            Route::get('/reset', 'showResetForm')->name('reset'); // Halaman reset email
+            Route::post('/reset', 'updateEmail')->name('update'); // Update email
+        });
+});
+
+// Dashboard buyer
+Route::middleware(['auth', 'role:buyer'])->group(function () {
+    Route::get('/buyer/dashboard', [BuyerController::class, 'index'])->name('buyer.dashboard');
+
+    // ** Profile Routes **
+    Route::controller(ProfileController::class)->prefix('buyer/profile')->name('profile.buyer.')->group(function () {
+        Route::get('/', 'index')->name('index'); // Halaman Profile
+        Route::post('/update', 'update')->name('update'); // Update Profile
+    });
+
+    // Change Email Routes for Buyer
+    Route::controller(EmailChangeController::class)
+        ->prefix('buyer/profile/email')
+        ->name('profile.buyer.email.')
+        ->middleware(['auth', 'role:buyer'])
+        ->group(function () {
+            Route::post('/send-reset-link', 'sendResetLink')->name('send-reset-link'); // Kirim link reset email
+            Route::get('/reset', 'showResetForm')->name('reset'); // Halaman reset email
+            Route::post('/reset', 'updateEmail')->name('update'); // Update email
+        });
 });
 
 

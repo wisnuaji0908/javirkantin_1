@@ -66,11 +66,11 @@
         <div class="content">
             <p>Hi {{ $user->name }},</p>
             <p>Thank you for signing up. Please click the button below to verify your email address.</p>
-            <p><a href="{{ $reset_link }}">Reset Password</a></p>
+            <p><a href="{{ $verification_link }}">Verify Email</a></p>
             <p>If you did not create an account, no further action is required.</p>
         </div>
         <div class="footer">
-            <p>© {{ date('Y') }} Your Application. All rights reserved.</p>
+            <p>© {{ date('Y') }} Javir Kantin. All rights reserved.</p>
         </div>
     </div>
 </body>

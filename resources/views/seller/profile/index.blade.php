@@ -1,6 +1,6 @@
-@extends('buyer.master')
+@extends('seller.master')
 
-@section('title', 'Profile Buyer')
+@section('title', 'Profile seller')
 
 @section('page-title', 'Akun Saya')
 
@@ -116,7 +116,7 @@
     </div>
 </div>
 
-<form method="POST" action="{{ route('profile.buyer.update') }}" enctype="multipart/form-data">
+<form method="POST" action="{{ route('profile.seller.update') }}" enctype="multipart/form-data">
     @csrf
     <input type="file" id="profile_image_input" name="profile_image" accept="image/*" style="display: none;" onchange="previewImage(event);">
 
@@ -191,7 +191,7 @@
 
 <script>
     function sendResetLink() {
-        fetch('{{ route("profile.buyer.email.send-reset-link") }}', {
+        fetch('{{ route("profile.seller.email.send-reset-link") }}', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
