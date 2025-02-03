@@ -17,6 +17,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SellerProfileController;
 use App\Http\Controllers\EmailChangeController;
+use App\Http\Controllers\Seller\ProductController;
+use App\Http\Controllers\Buyer\ShopController;
+use App\Http\Controllers\Buyer\CartController;
+use App\Http\Controllers\Admin\AdminChatController;
+use App\Http\Controllers\Buyer\ChatController as BuyerChatController;
+use App\Http\Controllers\Seller\ChatController as SellerChatController;
 
 // Redirect default route ke landing page
 Route::get('/', function () {
@@ -24,14 +30,18 @@ Route::get('/', function () {
         switch (Auth::user()->role) {
             case 'admin':
                 return redirect()->route('admin.dashboard');
-            case 'penjual':
+            case 'seller':
                 return redirect()->route('seller.dashboard');
             case 'buyer':
-                return redirect()->route('buyer.dashboard');
+                return redirect()->route('buyer..shop.index');
         }
     }
     return redirect('/landing');
 });
+
+Route::get('/blocked', function () {
+    return view('auth.blocked');
+})->name('blocked');
 
 // ** Guest Routes **
 Route::get('/landing', [LandingController::class, 'index']);
@@ -94,6 +104,18 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::put('/{id}', [AdminController::class, 'updateSeller'])->name('update'); // Update Seller
         Route::delete('/{id}', [AdminController::class, 'deleteSeller'])->name('delete'); // Hapus Seller
     });
+
+    // Buyer Management Routes (Tambahan)
+    Route::prefix('admin/buyers')->name('admin.buyers.')->group(function () {
+        Route::get('/', [AdminController::class, 'listBuyers'])->name('index'); // List Buyer
+        Route::post('/{id}/toggle-block', [AdminController::class, 'toggleBlockBuyer'])->name('toggle-block'); // Blokir/Unblokir Buyer
+    });
+
+    Route::middleware(['auth', 'role:admin'])->prefix('admin/chat')->group(function () {
+        Route::get('/', [AdminChatController::class, 'index'])->name('admin.chat.index');
+        Route::get('/{sellerId}', [AdminChatController::class, 'show'])->name('admin.chat.show');
+        Route::post('/{sellerId}', [AdminChatController::class, 'store'])->name('admin.chat.store');
+    });
 });
 
 // Dashboard Penjual
@@ -116,10 +138,27 @@ Route::middleware(['auth', 'role:seller'])->group(function () {
             Route::get('/reset', 'showResetForm')->name('reset'); // Halaman reset email
             Route::post('/reset', 'updateEmail')->name('update'); // Update email
         });
+
+    // CRUD Produk
+    Route::prefix('seller/products')->name('seller.products.')->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('index'); // List Produk
+        Route::get('/create', [ProductController::class, 'create'])->name('create'); // Form Tambah Produk
+        Route::post('/', [ProductController::class, 'store'])->name('store'); // Simpan Produk
+        Route::get('/{id}/edit', [ProductController::class, 'edit'])->name('edit'); // Form Edit Produk
+        Route::put('/{id}', [ProductController::class, 'update'])->name('update'); // Update Produk
+        Route::delete('/{id}', [ProductController::class, 'destroy'])->name('destroy'); // Hapus Produk
+    });
+
+    // ** Chat Routes (Seller) **
+    Route::prefix('seller/chat')->name('seller.chat.')->group(function () {
+        Route::get('/', [SellerChatController::class, 'index'])->name('index'); // List chat
+        Route::get('/{buyerId}', [SellerChatController::class, 'show'])->name('show'); // Halaman chat dengan buyer
+        Route::post('/{buyerId}', [SellerChatController::class, 'store'])->name('store'); // Kirim pesan
+    });
 });
 
 // Dashboard buyer
-Route::middleware(['auth', 'role:buyer'])->group(function () {
+Route::middleware(['auth', 'role:buyer', 'check.blocked'])->group(function () {
     Route::get('/buyer/dashboard', [BuyerController::class, 'index'])->name('buyer.dashboard');
 
     // ** Profile Routes **
@@ -138,6 +177,28 @@ Route::middleware(['auth', 'role:buyer'])->group(function () {
             Route::get('/reset', 'showResetForm')->name('reset'); // Halaman reset email
             Route::post('/reset', 'updateEmail')->name('update'); // Update email
         });
+
+    // ** Shop Routes **
+    Route::prefix('buyer/shop')->name('buyer.shop.')->group(function () {
+        Route::get('/', [ShopController::class, 'index'])->name('index');
+        Route::get('/{id}/products', [ShopController::class, 'products'])->name('products');
+    });
+
+    // ** Chat Routes (Buyer) **
+    Route::prefix('buyer/chat')->name('buyer.chat.')->group(function () {
+        Route::get('/', [BuyerChatController::class, 'index'])->name('index'); // List chat
+        Route::get('/{sellerId}', [BuyerChatController::class, 'show'])->name('show'); // Isi chat dengan seller
+        Route::post('/{sellerId}', [BuyerChatController::class, 'store'])->name('store'); // Kirim pesan
+    });
+
+    // ** Cart Routes (Keranjang) **
+    Route::prefix('buyer/cart')->name('buyer.cart.')->group(function () {
+        Route::get('/', [CartController::class, 'index'])->name('index'); // List keranjang
+        Route::post('/add', [CartController::class, 'store'])->name('add'); // Tambah produk ke keranjang
+        Route::post('/update/{cartId}', [CartController::class, 'update'])->name('update'); // Update jumlah produk di keranjang
+        Route::delete('/remove/{cartId}', [CartController::class, 'destroy'])->name('destroy'); // Hapus item dari keranjang
+        Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout'); // Checkout
+    });
 });
 
 

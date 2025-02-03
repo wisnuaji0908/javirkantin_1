@@ -28,46 +28,29 @@ data-lte-toggle="treeview"
 role="menu"
 data-accordion="false"
 >
-<li class="nav-item">
+{{-- <li class="nav-item">
     <a href="{{ route('buyer.dashboard') }}" class="nav-link {{ request()->routeIs('buyer.dashboard') ? 'active' : '' }}">
     <i class="fa-solid fa-gauge"></i>
     <p>Dashboard</p>
     </a>
-    </li>
+    </li> --}}
 <li class="nav-item">
-<a href="./generate/theme.html" class="nav-link">
+    <a href="{{ route('buyer.shop.index') }}" class="nav-link {{ request()->routeIs('buyer.shop.index') ? 'active' : '' }}">
 <i class="nav-icon bi bi-palette"></i>
-<p>Theme Generate</p>
+<p>Toko/Warung</p>
 </a>
 </li>
 <li class="nav-item">
-<a href="#" class="nav-link">
-<i class="nav-icon bi bi-box-seam-fill"></i>
-<p>
-Widgets
-<i class="nav-arrow bi bi-chevron-right"></i>
-</p>
-</a>
-<ul class="nav nav-treeview">
-<li class="nav-item">
-<a href="./widgets/small-box.html" class="nav-link">
-<i class="nav-icon bi bi-circle"></i>
-<p>Small Box</p>
+    <a href="{{ route('buyer.chat.index') }}" class="nav-link {{ request()->routeIs('buyer.chat.index') ? 'active' : '' }}">
+<i class="nav-icon bi bi-palette"></i>
+<p>Chat</p>
 </a>
 </li>
 <li class="nav-item">
-<a href="./widgets/info-box.html" class="nav-link">
-<i class="nav-icon bi bi-circle"></i>
-<p>info Box</p>
+    <a href="{{ route('buyer.cart.index') }}" class="nav-link {{ request()->routeIs('buyer.cart.index') ? 'active' : '' }}">
+<i class="nav-icon bi bi-palette"></i>
+<p>Keranjang</p>
 </a>
-</li>
-<li class="nav-item">
-<a href="./widgets/cards.html" class="nav-link">
-<i class="nav-icon bi bi-circle"></i>
-<p>Cards</p>
-</a>
-</li>
-</ul>
 </li>
 <li class="nav-item">
 <a href="#" class="nav-link">

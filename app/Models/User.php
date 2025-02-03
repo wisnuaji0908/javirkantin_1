@@ -25,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'id_profile',
         'qr_login_token',
         'email_verified_at',
+        'is_blocked',
     ];
 
     /**
@@ -58,8 +59,9 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Relationship with Staff (if applicable).
      */
-    public function staff()
+    // User.php
+    public function products()
     {
-        return $this->belongsTo(Staff::class);
+        return $this->hasMany(Product::class, 'seller_id', 'id'); // 'seller_id' adalah foreign key di tabel products
     }
 }

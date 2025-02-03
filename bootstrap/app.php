@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // 'admin' => \App\Http\Middleware\AdminMiddleware::class,
             // 'customer' => \App\Http\Middleware\CustomerMiddleware::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'check.blocked' => \App\Http\Middleware\CheckBlocked::class,
             'sweetalert' => \RealRashid\SweetAlert\ToSweetAlert::class, // Tambahin alias middleware SweetAlert
         ]);
     })

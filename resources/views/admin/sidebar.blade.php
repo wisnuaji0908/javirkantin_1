@@ -36,18 +36,22 @@ data-accordion="false"
     </li>
 <li class="nav-item">
     <a href="{{ route('admin.sellers.index') }}" class="nav-link {{ request()->routeIs('admin.sellers.index') ? 'active' : '' }}">
-<i class="nav-icon bi bi-palette"></i>
-<p>Seller</p>
-</a>
+    <i class="fa-solid fa-user"></i>
+    <p> List Seller</p>
+    </a>
 </li>
 <li class="nav-item">
-<a href="#" class="nav-link">
-<i class="nav-icon bi bi-box-seam-fill"></i>
-<p>
-Widgets
-<i class="nav-arrow bi bi-chevron-right"></i>
-</p>
-</a>
+    <a href="{{ route('admin.buyers.index') }}" class="nav-link {{ request()->routeIs('admin.buyers.index') ? 'active' : '' }}">
+        <i class="fas fa-user-lock"></i>
+        <p>List Buyer</p>
+    </a>
+</li>
+<li class="nav-item">
+    <a href="{{ route('admin.chat.index') }}" class="nav-link {{ request()->routeIs('admin.chat.index') ? 'active' : '' }}">
+        <i class="fas fa-comments"></i>
+        <p>Chat</p>
+    </a>
+</li>
 <ul class="nav nav-treeview">
 <li class="nav-item">
 <a href="./widgets/small-box.html" class="nav-link">

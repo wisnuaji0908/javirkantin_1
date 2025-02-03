@@ -114,4 +114,38 @@ class AdminController extends Controller
         $seller->delete();
         return redirect()->route('admin.sellers.index')->with('success', 'Seller berhasil dihapus.');
     }
+
+    public function listBuyers(Request $request)
+    {
+        $query = User::where('role', 'buyer');
+
+        // Filter by name
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        // Filter by email
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . $request->email . '%');
+        }
+
+        // Paginate buyers
+        $buyers = $query->paginate(10);
+
+        return view('admin.buyers.index', compact('buyers'));
+    }
+
+    public function toggleBlockBuyer($id)
+    {
+        $buyer = User::findOrFail($id);
+
+        $buyer->update([
+            'is_blocked' => !$buyer->is_blocked,
+        ]);
+
+        \Log::info("Buyer ID {$id} status updated to: " . ($buyer->is_blocked ? 'Blocked' : 'Active'));
+
+        $status = $buyer->is_blocked ? 'diblokir' : 'diaktifkan';
+        return redirect()->route('admin.buyers.index')->with('success', "Buyer berhasil $status.");
+    }
 }
