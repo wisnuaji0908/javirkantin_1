@@ -90,7 +90,7 @@ class AuthController extends Controller
                 case 'seller':
                     return redirect()->route('seller.dashboard');
                 case 'buyer':
-                    return redirect()->route('buyer.dashboard');
+                    return redirect()->route('buyer.shop.index');
                 default:
                     Auth::logout();
                     return redirect()->route('login')->withErrors(['role' => 'Invalid role!']);
