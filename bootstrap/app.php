@@ -19,7 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.blocked' => \App\Http\Middleware\CheckBlocked::class,
             'sweetalert' => \RealRashid\SweetAlert\ToSweetAlert::class, // Tambahin alias middleware SweetAlert
         ]);
+        // 🚀 TAMBAHIN MIDTRANS CALLBACK DI EXCEPTION CSRF
+        // $middleware->append(\App\Http\Middleware\VerifyCsrfToken::class);
     })
+    ->withProviders([
+        \App\Providers\MidtransServiceProvider::class, // 🔥 Tambahkan ini!
+    ])
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

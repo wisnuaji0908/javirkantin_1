@@ -103,66 +103,66 @@
     }
 </style>
 
-<div class="app-header">
-    <h1>Profile Saya</h1>
-</div>
-
-<div class="profile-container">
-    <div class="profile-header">
-        <img id="profile_preview" src="{{ auth()->user()->profile_image ? asset('storage/' . auth()->user()->profile_image) : asset('path/to/default-avatar.png') }}" alt="Avatar" class="avatar">
-        <div class="edit-icon" onclick="document.getElementById('profile_image_input').click();">
-            <i class="fas fa-pencil-alt" style="font-size: 12px; color: #123bdd;"></i>
-        </div>
-    </div>
-</div>
-
-<form method="POST" action="{{ route('profile.buyer.update') }}" enctype="multipart/form-data">
-    @csrf
-    <input type="file" id="profile_image_input" name="profile_image" accept="image/*" style="display: none;" onchange="previewImage(event);">
-
-    <div class="form-input">
-        <label for="name">Nama</label>
-        <input type="text" id="name" name="name" value="{{ auth()->user()->name }}" required>
+    <div class="app-header">
+        <h1>Profile Saya</h1>
     </div>
 
-    <div class="form-input">
-        <label for="email">Email</label>
-        <div class="input-group">
-            <input type="text" id="email" class="form-control" value="{{ auth()->user()->email }}" readonly>
-            <button type="button" class="btn btn-primary input-group-text" onclick="sendResetLink()"><i class="fas fa-edit"></i></button>
+    <div class="profile-container">
+        <div class="profile-header">
+            <img id="profile_preview" src="{{ auth()->user()->profile_image ? asset('storage/' . auth()->user()->profile_image) : asset('path/to/default-avatar.png') }}" alt="Avatar" class="avatar">
+            <div class="edit-icon" onclick="document.getElementById('profile_image_input').click();">
+                <i class="fas fa-pencil-alt" style="font-size: 12px; color: #123bdd;"></i>
+            </div>
         </div>
     </div>
 
-    <div class="form-input">
-        <label for="current_password">Password Saat Ini</label>
-        <div style="position: relative;">
-            <input type="password" id="current_password" name="current_password" placeholder="Masukkan password saat ini" style="padding-right: 40px;">
-            <i class="fas fa-eye" id="toggleCurrentPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
-        </div>
-        @error('current_password')
-                <div class="text-danger">{{ $message }}</div>
-        @enderror
-    </div>
+    <form method="POST" action="{{ route('profile.buyer.update') }}" enctype="multipart/form-data">
+        @csrf
+        <input type="file" id="profile_image_input" name="profile_image" accept="image/*" style="display: none;" onchange="previewImage(event);">
 
-    <div class="form-input">
-        <label for="password">Password Baru</label>
-        <div style="position: relative;">
-            <input type="password" id="password" name="password" placeholder="Ubah password jika perlu" style="padding-right: 40px;">
-            <i class="fas fa-eye" id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+        <div class="form-input">
+            <label for="name">Nama</label>
+            <input type="text" id="name" name="name" value="{{ auth()->user()->name }}" required>
         </div>
-    </div>
 
-    <!-- Input Konfirmasi Password Baru -->
-    <div class="form-input">
-        <label for="password_confirmation">Konfirmasi Password Baru</label>
-        <div style="position: relative;">
-            <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Ulangi password baru" style="padding-right: 40px;">
-            <i class="fas fa-eye" id="toggleConfirmPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+        <div class="form-input">
+            <label for="email">Email</label>
+            <div class="input-group">
+                <input type="text" id="email" class="form-control" value="{{ auth()->user()->email }}" readonly>
+                <button type="button" class="btn btn-primary input-group-text" onclick="sendResetLink()"><i class="fas fa-edit"></i></button>
+            </div>
         </div>
-    </div>
 
-    <button type="submit" class="btn btn-primary btn-save">Simpan</button>
-</form>
+        <div class="form-input">
+            <label for="current_password">Password Saat Ini</label>
+            <div style="position: relative;">
+                <input type="password" id="current_password" name="current_password" placeholder="Masukkan password saat ini" style="padding-right: 40px;">
+                <i class="fas fa-eye" id="toggleCurrentPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+            </div>
+            @error('current_password')
+                    <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="form-input">
+            <label for="password">Password Baru</label>
+            <div style="position: relative;">
+                <input type="password" id="password" name="password" placeholder="Ubah password jika perlu" style="padding-right: 40px;">
+                <i class="fas fa-eye" id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+            </div>
+        </div>
+
+        <!-- Input Konfirmasi Password Baru -->
+        <div class="form-input">
+            <label for="password_confirmation">Konfirmasi Password Baru</label>
+            <div style="position: relative;">
+                <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Ulangi password baru" style="padding-right: 40px;">
+                <i class="fas fa-eye" id="toggleConfirmPassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-save">Simpan</button>
+    </form>
 
 <!-- Flash Message Noty -->
 @if (session('success'))
@@ -251,4 +251,78 @@
         }
     });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    @php
+        $reviewData = json_decode(Auth::user()->review_notification ?? '[]', true);
+    @endphp
+
+    let reviewDataArray = {!! json_encode($reviewData) !!};
+
+    if (!Array.isArray(reviewDataArray) || reviewDataArray.length === 0) {
+        console.warn("❌ Tidak ada data review yang valid!");
+        return;
+    }
+
+    function showNextReview(index) {
+        if (index >= reviewDataArray.length) return;
+
+        let reviewData = reviewDataArray[index];
+        let sellerId = reviewData.seller_id ?? null;
+
+        if (!sellerId) {
+            console.error("❌ Seller ID tidak ditemukan untuk order:", reviewData.order_id);
+            return;
+        }
+
+        Swal.fire({
+            title: "Konfirmasi Pesanan?",
+            text: `Pesanan '${reviewData.product_name}' dari '${reviewData.seller_name}' sudah Anda terima?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#28a745",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Ya, Selesaikan!",
+            cancelButtonText: "Belum"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/buyer/orders/update-status/${reviewData.order_id}`, { // ✅ Perbaiki path URL
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                    },
+                    body: JSON.stringify({
+                        status: "finish",
+                        seller_id: sellerId
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire("Sukses!", "Pesanan telah selesai.", "success")
+                        .then(() => {
+                            showNextReview(index + 1);
+                        });
+                    } else {
+                        Swal.fire("Error!", "Gagal memperbarui status pesanan.", "error");
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ Fetch error:", error);
+                    Swal.fire("Error!", "Terjadi kesalahan, coba lagi nanti.", "error");
+                });
+            }
+        });
+    }
+
+    showNextReview(0);
+});
+        </script>
 @endsection

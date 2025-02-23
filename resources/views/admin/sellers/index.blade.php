@@ -1,6 +1,7 @@
 @extends('admin.master')
 
 @section('content')
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/noty/lib/noty.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/noty/lib/themes/mint.css">
 <script src="https://cdn.jsdelivr.net/npm/noty/lib/noty.min.js"></script>

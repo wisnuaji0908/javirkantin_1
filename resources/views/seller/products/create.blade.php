@@ -46,6 +46,15 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+
+                <!-- Hidden Input untuk Pastikan Toppings Dikirim -->
+                <input type="hidden" name="toppings_json" id="toppings_json">
+
+                <div class="mb-3">
+                    <label for="toppings" class="form-label fw-bold">Topping (Opsional)</label>
+                    <div id="topping-container"></div>
+                    <button type="button" class="btn btn-sm btn-primary mt-2" id="addTopping">+ Tambah Topping</button>
+                </div>
                 <div class="d-flex justify-content-end">
                     <button type="submit" class="btn btn-success">Simpan</button>
                     <a href="{{ route('seller.products.index') }}" class="btn btn-secondary ms-3">Batal</a>
@@ -56,10 +65,49 @@
 </div>
 
 <script>
-    // Tambahin feedback interaktif buat file upload
     document.getElementById('image').addEventListener('change', function (e) {
         const fileName = e.target.files[0]?.name || 'Pilih file';
         e.target.nextElementSibling.textContent = fileName;
+    });
+
+    let toppingIndex = 0;
+    const toppingContainer = document.getElementById('topping-container');
+    const toppingsJsonInput = document.getElementById('toppings_json');
+
+    function updateToppingsJson() {
+        let toppings = [];
+        document.querySelectorAll('.topping-item').forEach((item, index) => {
+            let name = item.querySelector('.topping-name').value;
+            let price = item.querySelector('.topping-price').value;
+            if (name.trim() !== '' && price.trim() !== '') {
+                toppings.push({ name: name, price: parseInt(price) });
+            }
+        });
+        toppingsJsonInput.value = JSON.stringify(toppings);
+    }
+
+    document.getElementById('addTopping').addEventListener('click', function () {
+        const newTopping = document.createElement('div');
+        newTopping.classList.add('d-flex', 'mb-2', 'topping-item');
+        newTopping.innerHTML = `
+            <input type="text" class="form-control me-2 topping-name" placeholder="Nama topping" required>
+            <input type="number" class="form-control topping-price" placeholder="Harga topping" required>
+            <button type="button" class="btn btn-danger btn-sm ms-2 removeTopping">X</button>
+        `;
+        toppingContainer.appendChild(newTopping);
+        toppingIndex++;
+        updateToppingsJson();
+    });
+
+    toppingContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('removeTopping')) {
+            e.target.parentElement.remove();
+            updateToppingsJson();
+        }
+    });
+
+    document.getElementById('createProductForm').addEventListener('submit', function () {
+        updateToppingsJson();
     });
 </script>
 @endsection

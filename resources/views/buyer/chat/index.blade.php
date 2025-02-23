@@ -61,7 +61,7 @@
     }
 </style>
 
-<div class="container my-4">
+<div class="container my-1">
     <h3 class="mb-3">Daftar Chat</h3>
     <div class="chat-list">
         @foreach($chats as $chat)
@@ -108,4 +108,78 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    @php
+        $reviewData = json_decode(Auth::user()->review_notification ?? '[]', true);
+    @endphp
+
+    let reviewDataArray = {!! json_encode($reviewData) !!};
+
+    if (!Array.isArray(reviewDataArray) || reviewDataArray.length === 0) {
+        console.warn("❌ Tidak ada data review yang valid!");
+        return;
+    }
+
+    function showNextReview(index) {
+        if (index >= reviewDataArray.length) return;
+
+        let reviewData = reviewDataArray[index];
+        let sellerId = reviewData.seller_id ?? null;
+
+        if (!sellerId) {
+            console.error("❌ Seller ID tidak ditemukan untuk order:", reviewData.order_id);
+            return;
+        }
+
+        Swal.fire({
+            title: "Konfirmasi Pesanan?",
+            text: `Pesanan '${reviewData.product_name}' dari '${reviewData.seller_name}' sudah Anda terima?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#28a745",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Ya, Selesaikan!",
+            cancelButtonText: "Belum"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/buyer/orders/update-status/${reviewData.order_id}`, { // ✅ Perbaiki path URL
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                    },
+                    body: JSON.stringify({
+                        status: "finish",
+                        seller_id: sellerId
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire("Sukses!", "Pesanan telah selesai.", "success")
+                        .then(() => {
+                            showNextReview(index + 1);
+                        });
+                    } else {
+                        Swal.fire("Error!", "Gagal memperbarui status pesanan.", "error");
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ Fetch error:", error);
+                    Swal.fire("Error!", "Terjadi kesalahan, coba lagi nanti.", "error");
+                });
+            }
+        });
+    }
+
+    showNextReview(0);
+});
+        </script>
 @endsection

@@ -38,17 +38,24 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|integer|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'toppings' => 'nullable|array',
+            'toppings.*.name' => 'required_with:toppings|string|max:255',
+            'toppings.*.price' => 'required_with:toppings|integer|min:0',
         ]);
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
+
+
+        $validated['toppings'] = $request->has('toppings_json') ? $request->toppings_json : json_encode([]);
 
         // Tambahkan seller_id dari user yang sedang login
         $validated['seller_id'] = auth()->id();
@@ -84,21 +91,31 @@ class ProductController extends Controller
             'price' => 'required|integer|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'toppings' => 'nullable|array',
+            'toppings.*.name' => 'required_with:toppings|string|max:255',
+            'toppings.*.price' => 'required_with:toppings|integer|min:0',
         ]);
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
+        // Simpan topping sebagai JSON dari input hidden
+        $validated['toppings'] = $request->has('toppings_json') ? $request->toppings_json : json_encode([]);
+
         $product->update($validated);
 
         return redirect()->route('seller.products.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
-
-    public function destroy(Product $id)
+    public function destroy($id)
     {
         $product = Product::find($id);
+
+        if (!$product) {
+            return redirect()->route('seller.products.index')->with('error', 'Produk tidak ditemukan.');
+        }
+
         $product->delete();
         return redirect()->route('seller.products.index')->with('success', 'Produk berhasil dihapus.');
     }
