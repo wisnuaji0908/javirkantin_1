@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\BarangController;
-use App\Http\Controllers\CheckOutController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BuyerController;
@@ -21,8 +20,10 @@ use App\Http\Controllers\Seller\ProductController;
 use App\Http\Controllers\Buyer\ShopController;
 use App\Http\Controllers\Buyer\CartController;
 use App\Http\Controllers\Admin\AdminChatController;
+use App\Http\Controllers\Buyer\CheckoutController;
 use App\Http\Controllers\Buyer\ChatController as BuyerChatController;
 use App\Http\Controllers\Seller\ChatController as SellerChatController;
+use App\Http\Controllers\SellerFinanceController;
 
 // Redirect default route ke landing page
 Route::get('/', function () {
@@ -33,7 +34,7 @@ Route::get('/', function () {
             case 'seller':
                 return redirect()->route('seller.dashboard');
             case 'buyer':
-                return redirect()->route('buyer..shop.index');
+                return redirect()->route('buyer.shop.index');
         }
     }
     return redirect('/landing');
@@ -77,6 +78,7 @@ Route::controller(AuthController::class)->group(function () {
 // Dashboard Admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/seller/{sellerId}/detail', [AdminController::class, 'detail'])->name('admin.seller.detail');
 
     // ** Profile Routes (Admin) **
     Route::controller(AdminProfileController::class)->prefix('admin/profile')->name('profile.admin.')->group(function () {
@@ -120,7 +122,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 // Dashboard Penjual
 Route::middleware(['auth', 'role:seller'])->group(function () {
-    Route::get('/seller/dashboard', [SellerController::class, 'index'])->name('seller.dashboard');
+    Route::get('/seller/dashboard', [SellerFinanceController::class, 'index'])
+        ->name('seller.dashboard');
+    // Route::get('/seller/dashboard', [SellerController::class, 'index'])->name('seller.dashboard');
 
     // ** Profile Routes (Seller) **
     Route::controller(SellerProfileController::class)->prefix('seller/profile')->name('profile.seller.')->group(function () {
@@ -199,8 +203,56 @@ Route::middleware(['auth', 'role:buyer', 'check.blocked'])->group(function () {
         Route::delete('/remove/{cartId}', [CartController::class, 'destroy'])->name('destroy'); // Hapus item dari keranjang
         Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout'); // Checkout
     });
+
+    // Checkout
+    Route::prefix('checkout')->name('checkout.')->group(function () {
+        Route::get('/', [CheckoutController::class, 'index'])->name('index');
+        Route::post('/process', [CheckoutController::class, 'process'])->name('process');
+        // Route::get('/success/{order_id}', function ($order_id) {
+        //     return view('buyer.checkout.payment_success', compact('order_id'));
+        // })->name('payment.success');
+
+        Route::get('/failed', function () {
+            return view('buyer.checkout.payment_failed');
+        })->name('payment.failed');
+        Route::get('/receipt/{order_id}', [CheckoutController::class, 'receipt'])->name('receipt');
+
+        // **Route baru untuk "Beli Sekarang" langsung dari produk**
+        Route::post('/direct', [CheckoutController::class, 'directCheckout'])->name('direct');
+    });
 });
 
+Route::get('/checkout/success/{order_id}', [CheckoutController::class, 'paymentSuccess'])
+    ->name('checkout.payment.success');
+
+// ** Order Routes (Pesanan) **
+Route::middleware(['auth'])->group(function () {
+    // ** Buyer Order Routes **
+    Route::prefix('buyer/orders')->name('buyer.orders.')->middleware(['role:buyer'])->group(function () {
+        Route::get('/', [OrderController::class, 'buyerOrders'])->name('index'); // Lihat daftar pesanan
+        Route::get('/{orderId}/{sellerId}', [OrderController::class, 'buyerOrderDetail'])->name('show');
+        Route::post('/update-status/{orderId}', [OrderController::class, 'buyerConfirmOrder'])
+            ->name('update-status');
+    });
+
+    // ** Seller Order Management **
+    Route::prefix('seller/orders')->name('seller.orders.')->middleware(['role:seller'])->group(function () {
+        Route::get('/', [OrderController::class, 'sellerOrders'])->name('index'); // Lihat semua pesanan
+        Route::get('/{orderId}', [OrderController::class, 'show'])->name('show');
+        Route::post('/update-status/{orderId}', [OrderController::class, 'updateOrderStatus'])
+            ->name('update-status');
+    });
+});
+
+Route::get('/buyer/review-notification', function () {
+    $buyer = Auth::user();
+    $notification = json_decode($buyer->review_notification, true);
+
+    return response()->json([
+        'hasNotification' => !empty($notification),
+        'notification' => $notification
+    ]);
+})->middleware(['auth', 'role:buyer']);
 
 
 // // ** Dashboard (Admin & Customer) **

@@ -3,11 +3,16 @@
 @section('title', 'Toko Seller')
 
 @section('content')
-<div class="container my-4">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<div class="container my-2">
     <h1 class="text-center mb-4">Toko Seller</h1>
+    <!-- Filter Input -->
+    <div class="d-flex justify-content-center mb-4">
+        <input type="text" id="searchSeller" class="form-control filter-input w-50" placeholder="🔎 Cari Toko Seller...">
+    </div>
     <div class="row">
         @foreach($sellers as $seller)
-        <div class="col-md-4 mb-4">
+        <div class="col-md-4 mb-4 seller-card-container">
             <div class="card seller-card shadow-sm">
                 <div class="card-body text-center">
                     <img src="{{ $seller->profile_image ? asset('storage/' . $seller->profile_image) : asset('images/default-profile.png') }}"
@@ -58,6 +63,18 @@
     font-size: 0.9rem;
 }
 
+.filter-input {
+    border-radius: 20px;
+    padding: 10px;
+    width: 300px;
+    transition: all 0.3s ease;
+}
+
+.filter-input:focus {
+    border: 2px solid #007bff;
+    box-shadow: 0px 0px 10px rgba(0, 123, 255, 0.5);
+}
+
 .btn-primary {
     background-color: #007bff;
     border-color: #007bff;
@@ -77,11 +94,101 @@
     background-color: #218838;
     border-color: #1e7e34;
 }
+.hidden {
+    display: none !important;
+}
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    console.log("Toko Seller page loaded!");
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchSeller = document.getElementById("searchSeller");
+        const sellers = document.querySelectorAll(".seller-card-container");
+
+        searchSeller.addEventListener("keyup", function () {
+            let value = this.value.toLowerCase().trim();
+            sellers.forEach(seller => {
+                let sellerName = seller.querySelector(".seller-name").innerText.toLowerCase();
+                if (sellerName.includes(value)) {
+                    seller.classList.remove("hidden"); // ✅ Tampilkan seller yang cocok
+                } else {
+                    seller.classList.add("hidden"); // ✅ Sembunyikan yang nggak cocok
+                }
+            });
+        });
+    });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    @php
+        $reviewData = json_decode(Auth::user()->review_notification ?? '[]', true);
+    @endphp
+
+    let reviewDataArray = {!! json_encode($reviewData) !!};
+
+    if (!Array.isArray(reviewDataArray) || reviewDataArray.length === 0) {
+        console.warn("❌ Tidak ada data review yang valid!");
+        return;
+    }
+
+    function showNextReview(index) {
+        if (index >= reviewDataArray.length) return;
+
+        let reviewData = reviewDataArray[index];
+        let sellerId = reviewData.seller_id ?? null;
+
+        if (!sellerId) {
+            console.error("❌ Seller ID tidak ditemukan untuk order:", reviewData.order_id);
+            return;
+        }
+
+        Swal.fire({
+            title: "Konfirmasi Pesanan?",
+            text: `Pesanan '${reviewData.product_name}' dari '${reviewData.seller_name}' sudah Anda terima?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#28a745",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Ya, Selesaikan!",
+            cancelButtonText: "Belum"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/buyer/orders/update-status/${reviewData.order_id}`, { // ✅ Perbaiki path URL
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                    },
+                    body: JSON.stringify({
+                        status: "finish",
+                        seller_id: sellerId
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire("Sukses!", "Pesanan telah selesai.", "success")
+                        .then(() => {
+                            showNextReview(index + 1);
+                        });
+                    } else {
+                        Swal.fire("Error!", "Gagal memperbarui status pesanan.", "error");
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ Fetch error:", error);
+                    Swal.fire("Error!", "Terjadi kesalahan, coba lagi nanti.", "error");
+                });
+            }
+        });
+    }
+
+    showNextReview(0);
 });
-</script>
+        </script>
 @endsection

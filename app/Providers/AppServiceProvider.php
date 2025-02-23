@@ -19,6 +19,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (env('APP_ENV') === 'production' || $this->isNgrok()) {
+            \URL::forceScheme('https');
+        }
     }
+
+    /**
+     * Cek apakah aplikasi sedang berjalan di Ngrok
+     */
+    private function isNgrok(): bool
+    {
+        return isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https';
+    }
+
 }

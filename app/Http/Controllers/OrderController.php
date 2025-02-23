@@ -2,122 +2,174 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Barang;
-use App\Models\Order;
-use App\Models\Profile;
 use Illuminate\Http\Request;
+use App\Models\Transaction;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
-    public function apiBarang($id){
-        $barang = Barang::where('user_id',$id)->get();
-        // dd($barang);
-        return response()->json($barang);
-    }
-    public function apiDetailBarang($id, $barang){
-        $barang = Barang::where('user_id',$id)->where('barang',$barang)->get();
-        // dd($barang);
-        return response()->json($barang);
-    }
     /**
-     * Display a listing of the resource.
+     * Buyer melihat daftar pesanan yang sudah dibayar
      */
-
-    public function index()
+    public function buyerOrders()
     {
-        $id = Barang::where('user_id', session('id'))->pluck('user_id')->first();
-        $profile = Profile::where('user_id', $id)->pluck('id')->first();
+        $orders = Transaction::where('buyer_id', Auth::id())
+            ->where('status', 'paid')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-        $orders = Order::where('id_profile', $profile)
-                        ->get();
+        return view('buyer.orders.index', compact('orders'));
+    }
 
-        // Cek apakah ada pesanan
-        if ($orders->isEmpty()) {
-            $status = null;
-        } else {
-            $status = $orders[0]['status'];
+    public function buyerOrderDetail($orderId, $sellerId)
+    {
+        $buyerId = Auth::id();
+
+        // Cari order berdasarkan order_id DAN seller_id
+        $order = Transaction::where('order_id', $orderId)
+            ->where('buyer_id', $buyerId)
+            ->where('seller_id', $sellerId) // Tambahin pengecekan seller_id
+            ->with(['product', 'seller', 'buyer'])
+            ->first();
+
+        if (!$order) {
+            return redirect()->route('buyer.orders.index')->with('error', 'Pesanan tidak ditemukan atau bukan milik Anda.');
         }
 
-        // $status=$orders[0]['status'];
-        return view('transaction.order.index',   [
-            'profile' => $orders,
-            'status' => $status
+        return view('buyer.orders.detail', compact('order'));
+    }
+
+    /**
+     * Seller melihat dan mengelola pesanan yang sudah dibayar
+     */
+    public function sellerOrders()
+    {
+        $sellerId = Auth::user()->id;
+
+        $orders = Transaction::where('status', 'paid')
+            ->whereHas('product', function ($query) use ($sellerId) {
+                $query->where('seller_id', $sellerId);
+            })
+            ->with(['product', 'product.seller']) // FIX: Load seller juga
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('seller.orders.index', compact('orders'));
+    }
+
+    public function show($orderId)
+    {
+        $sellerId = Auth::user()->id;
+
+        $order = Transaction::where('order_id', $orderId)
+            ->where('seller_id', $sellerId)
+            ->with(['product', 'buyer'])
+            ->first();
+
+        if (!$order) {
+            return redirect()->route('seller.orders.index')->with('error', 'Pesanan tidak ditemukan atau bukan milik Anda.');
+        }
+
+        return view('seller.orders.detail', compact('order'));
+    }
+    /**
+     * Seller mengubah status pesanan
+     */
+    public function updateOrderStatus(Request $request, $orderId)
+    {
+        $request->validate([
+            'status' => 'required|in:processing,ready,review,finish'
         ]);
-    }
 
-    public function store(Request $request)
-    {
-        try {
-            $data= $request->validate([
-                'nama_barang'=>'required',
-                'harga'=>['required','numeric'],
-                'id_profile'=>['required', 'numeric'],
-                'notes'=>'nullable'
-            ]);
-            $store= Order::create($data);
-            if($store) {
-                toast('Data berhasil ditambahkan!','success');
-                return redirect('/transaction/order');
-            }
-            return back()->with('error', 'order failed!');
-        } catch (\Exception $e) {
-            $errorMessage = $e->getMessage();
+        $sellerId = Auth::id(); // Seller yang sedang login
 
-            // Anda juga dapat menambahkan kode status tertentu, misalnya:
-            $statusCode = 500; // Internal Server Error
+        // Ambil transaksi spesifik berdasarkan order_id dan seller_id
+        $orders = Transaction::where('order_id', $orderId)
+            ->where('seller_id', $sellerId)
+            ->get();
 
-            // Kembalikan respon dengan pesan kesalahan
-            return response()->json(['error' => $errorMessage], $statusCode);
+        if ($orders->isEmpty()) {
+            return response()->json(['error' => 'Pesanan tidak ditemukan atau bukan milik Anda.'], 400);
         }
-
-
-    }
-
-
-    public function update(Request $request, Order $order)
-    {
-        if($request->status=="2"){
-            $request['status']= 2;
-        }else if($request->status=="3"){
-            $request['status']= 3;
-        }else if($request->status=="4"){
-            $request['status']= 4;
-        }else if($request->status=="5"){
-            $request['status']= 5;
-        }else{
-            $request['status']= "unknown";
-        }
-        $update= $order->update(["status"=>$request->status]);
-        $barang=Barang::where('user_id', session('id'))->pluck('stok')->first();
-        // dd($barang-1);
-
-        if($update) {
-            toast('Data berhasil diupdate!','success');
-            Barang::where('user_id', session('id'))->update(['stok'=>$barang-1]);
-
-            return redirect('/transaction/order');
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Request $request)
-    {
-        $orderIds = $request->input('orders');
-        // dd($request);
-
-        if (!is_array($orderIds) || empty($orderIds)) {
-            return back()->with('error', 'No orders selected!');
-        }
-
-        $orders = Order::whereIn('id', $orderIds)->where('user_id', auth()->user()->id)->get();
 
         foreach ($orders as $order) {
-            $order->delete();
+            // Update status sesuai permintaan seller
+            if ($request->status === 'ready') {
+                $order->update(['order_status' => 'ready']);
+
+                // Redirect kalau status berubah jadi ready
+                return redirect()->route('seller.orders.index')->with('success', 'Status pesanan berhasil diperbarui.');
+            } elseif ($request->status === 'review') {
+                $order->update(['order_status' => 'review']);
+
+                // Ambil buyer dari transaksi
+                $buyer = $order->buyer;
+
+                // Ambil notifikasi sebelumnya
+                $existingNotifications = json_decode($buyer->review_notification, true) ?? [];
+
+                // Tambahkan notifikasi baru
+                $existingNotifications[] = [
+                    'order_id' => $order->order_id,
+                    'product_name' => $order->product->name ?? 'Produk Tidak Diketahui',
+                    'seller_name' => $order->product->seller->name ?? 'Seller Tidak Diketahui',
+                    'seller_id' => $order->seller_id // 🔥 Tambahin seller_id ke array
+                ];
+
+                // Simpan notifikasi ke database buyer
+                $buyer->update([
+                    'review_notification' => json_encode($existingNotifications)
+                ]);
+            }
         }
-        toast('Data berhasil dihapus!','success');
-        return back();
+
+        return response()->json(['success' => true, 'message' => 'Status pesanan berhasil diperbarui.']);
     }
 
+    public function buyerConfirmOrder(Request $request, $orderId)
+    {
+        $request->validate([
+            'status' => 'required|in:finish',
+            'seller_id' => 'required|exists:users,id' // Validasi seller_id harus ada di tabel users
+        ]);
+
+        $buyerId = Auth::id();
+        $sellerId = $request->seller_id;
+
+        // Cek apakah order yang diambil benar berdasarkan buyer & seller
+        $orders = Transaction::where('order_id', $orderId)
+            ->where('buyer_id', $buyerId)
+            ->where('seller_id', $sellerId)
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json(['error' => 'Pesanan tidak valid atau belum bisa dikonfirmasi.'], 400);
+        }
+
+        foreach ($orders as $order) {
+            if ($order->order_status !== 'review') {
+                return response()->json(['error' => 'Pesanan tidak valid atau belum bisa dikonfirmasi.'], 400);
+            }
+            $order->update(['order_status' => 'finish']);
+        }
+
+        // Update notifikasi buyer
+        $buyer = $orders->first()->buyer;
+        $existingNotifications = json_decode($buyer->review_notification, true) ?? [];
+
+        // Filter notifikasi berdasarkan seller_id
+        $updatedNotifications = array_filter($existingNotifications, function ($notification) use ($orderId, $sellerId) {
+            return !($notification['order_id'] === $orderId && $notification['seller_id'] == $sellerId);
+        });
+
+        $buyer->update([
+            'review_notification' => empty($updatedNotifications) ? null : json_encode(array_values($updatedNotifications))
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan telah selesai.',
+            'new_status' => 'finish'
+        ]);
+    }
 }

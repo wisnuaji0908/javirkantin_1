@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'qr_login_token',
         'email_verified_at',
         'is_blocked',
+        'review_notification',
     ];
 
     /**
@@ -63,5 +64,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function products()
     {
         return $this->hasMany(Product::class, 'seller_id', 'id'); // 'seller_id' adalah foreign key di tabel products
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'seller_id');
     }
 }

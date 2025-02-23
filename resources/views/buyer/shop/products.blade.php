@@ -35,7 +35,12 @@
                         </div>
                     </form>
 
-                    <button class="btn btn-primary btn-sm w-100 buy-button">Beli Sekarang</button>
+                    <!-- Tombol Beli Sekarang -->
+                    <button class="btn btn-primary btn-sm w-100 buy-button"
+                        data-product-id="{{ $product->id }}"
+                        data-price="{{ $product->price }}">
+                        Beli Sekarang
+                    </button>
                 </div>
             </div>
         </div>
@@ -112,12 +117,59 @@
 document.addEventListener('DOMContentLoaded', function () {
     console.log("Produk Seller page loaded!");
 
-    // Tombol beli sekarang
-    document.querySelectorAll('.buy-button').forEach(function (button) {
-        button.addEventListener('click', function () {
-            alert('Fitur pembelian akan segera hadir!');
+    // // Tombol beli sekarang
+    // document.querySelectorAll('.buy-button').forEach(function (button) {
+    //     button.addEventListener('click', function () {
+    //         alert('Fitur pembelian akan segera hadir!');
+    //     });
+    // });
+
+    // Beli Sekarang - AJAX
+    document.querySelectorAll('.buy-button').forEach(button => {
+    button.addEventListener('click', function () {
+        let productId = this.closest('.card-body').querySelector('input[name="product_id"]').value;
+        let quantity = this.closest('.card-body').querySelector('.quantity-input').value;
+
+        let checkoutData = [
+            {
+                product_id: productId,
+                quantity: quantity,
+                toppings: [] // Kosongkan topping kalau tidak ada
+            }
+        ];
+
+        console.log("Checkout Data yang dikirim:", checkoutData); // ✅ Tambahin ini buat debug
+
+        fetch("{{ route('checkout.direct') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                checkoutProducts: checkoutData
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+    console.log("Response dari server:", data); // ✅ Debug response
+
+    if (data.success) {
+        console.log("Redirect ke checkout harusnya terjadi...");
+        setTimeout(() => {
+            console.log("Redirecting ke:", data.redirect);
+            window.location.replace(data.redirect);
+        }, 500);
+    } else {
+        alert("Gagal: " + data.message);
+    }
+})
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Terjadi kesalahan, coba lagi.");
         });
     });
+});
 
     // Tambah ke keranjang pakai AJAX
     document.querySelectorAll('.add-to-cart-form').forEach(function (form) {

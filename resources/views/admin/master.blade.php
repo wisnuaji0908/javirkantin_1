@@ -42,15 +42,31 @@
     <!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css">
+<style>
+    .app-wrapper {
+        display: flex; /* Sidebar dan konten sejajar */
+    }
+
+    .main-content {
+        flex-grow: 1;
+        margin-left: 260px; /* Biar gak ketumpuk sidebar */
+        padding: 20px;
+        min-height: 100vh; /* Full tinggi layar */
+        width: 100%;
+        background-image: url("/image/bg1.jpg"); /* Background gambar */
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+</style>
 </head>
 <body class="layout-fixed sidebar-mini bg-body-tertiary">
-<div class="app-wrapper">
-
-<!-- Header -->
-@include('admin.sidebar')
-{{-- @include('admin.main') --}}
-@yield('content')
-</div>
+    <div class="app-wrapper">
+        @include('admin.sidebar') <!-- Sidebar Admin -->
+        <div class="main-content">
+            @yield('content') <!-- Konten dinamis -->
+        </div>
+    </div>
 
 <!-- Scripts -->
 <script

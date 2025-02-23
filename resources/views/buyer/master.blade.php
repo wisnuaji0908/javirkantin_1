@@ -29,7 +29,7 @@
     />
     <!--end::Third Party Plugin(Bootstrap Icons)-->
     <!--begin::Required Plugin(AdminLTE)-->
-    <link rel="stylesheet" href="{{ asset('css/adminlte.min.css') }}" />
+    <link rel="stylesheet" href="/css/adminlte.min.css" />
     <!--end::Required Plugin(AdminLTE)-->
     <!-- apexcharts -->
     <link
@@ -42,14 +42,32 @@
     <!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css">
+<style>
+.app-wrapper {
+    display: flex; /* Biar sidebar dan konten sejajar */
+}
+
+.main-content {
+    flex-grow: 1;
+    margin-left: 260px; /* Biar nggak ketumpuk sidebar */
+    right : 100%;
+    padding: 20px;
+    min-height: 100vh; /* Biar konten full ke bawah */
+    width: 100%;
+    background-image: url("/image/bg1.jpg"); /* Background gambar */
+    background-size: cover; /* Gambar bakal full cover */
+    background-position: center; /* Posisikan di tengah */
+    background-attachment: fixed; /* Biar scroll tetap keren */
+}
+</style><
 </head>
 <body class="layout-fixed sidebar-mini bg-body-tertiary">
-<div class="app-wrapper">
-
-<!-- Header -->
-@include('buyer.sidebar')
-{{-- @include('buyer.main') --}}
-@yield('content')
+    <div class="app-wrapper">
+        @include('buyer.sidebar')
+        <div class="main-content">
+            @yield('content')
+        </div>
+    </div>
 </div>
 
 <!-- Scripts -->
@@ -71,7 +89,7 @@
       crossorigin="anonymous"
     ></script>
     <!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->
-    <script src="{{ asset('js/adminlte.js') }}"></script>
+    <script src="/js/adminlte.js"></script>
     <!--end::Required Plugin(AdminLTE)--><!--begin::OverlayScrollbars Configure-->
     <script>
       const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';

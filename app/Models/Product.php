@@ -10,10 +10,14 @@ class Product extends Model
     use HasFactory;
 
     protected
-    $fillable = ['name', 'description', 'price', 'stock', 'image', 'seller_id',];
+    $fillable = ['name', 'description', 'price', 'stock', 'image', 'toppings', 'seller_id',];
 
     public function seller()
     {
         return $this->belongsTo(User::class, 'seller_id', 'id'); // 'seller_id' adalah foreign key di tabel products
     }
+
+    protected $casts = [
+        'toppings' => 'array',
+    ];
 }

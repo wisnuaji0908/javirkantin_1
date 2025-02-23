@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Models\Transaction;
 
 class AdminController extends Controller
 {
@@ -14,7 +15,25 @@ class AdminController extends Controller
      */
     public function index()
     {
-        return view('admin.index'); // Pastikan view ini ada
+        // Ambil seller dengan total pendapatan dari transaksi yang statusnya 'finish'
+        $sellers = User::where('role', 'seller')
+            ->with([
+                'transactions' => function ($query) {
+                    $query->where('order_status', 'finish');
+                }
+            ])
+            ->get();
+
+        // Format data untuk ditampilkan di dashboard
+        $sellerEarnings = $sellers->map(function ($seller) {
+            return [
+                'seller_id' => $seller->id, // Tambahkan seller_id
+                'seller_name' => $seller->name,
+                'total_earnings' => $seller->transactions->sum('total_price'),
+            ];
+        });
+
+        return view('admin.index', compact('sellerEarnings'));
     }
 
     /**
@@ -147,5 +166,39 @@ class AdminController extends Controller
 
         $status = $buyer->is_blocked ? 'diblokir' : 'diaktifkan';
         return redirect()->route('admin.buyers.index')->with('success', "Buyer berhasil $status.");
+    }
+
+    public function detail($sellerId)
+    {
+        // Ambil nama seller berdasarkan ID
+        $seller = User::where('id', $sellerId)->where('role', 'seller')->firstOrFail();
+
+        // Total Pendapatan (Total transaksi sukses)
+        $totalPendapatan = Transaction::where('seller_id', $sellerId)
+            ->where('order_status', 'finish')
+            ->sum('total_price');
+
+        // Total Produk Terjual (Semua transaksi selain pending & failed)
+        $totalProdukTerjual = Transaction::where('seller_id', $sellerId)
+            ->whereNotIn('status', ['pending', 'failed'])
+            ->sum('quantity');
+
+        // Total Transaksi Sukses (order_status = 'finish')
+        $totalTransaksiSukses = Transaction::where('seller_id', $sellerId)
+            ->where('order_status', 'finish')
+            ->count();
+
+        // Ambil semua transaksi seller dengan pagination
+        $transactions = Transaction::where('seller_id', $sellerId)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('admin.seller_detail', compact(
+            'seller',
+            'totalPendapatan',
+            'totalProdukTerjual',
+            'totalTransaksiSukses',
+            'transactions'
+        ));
     }
 }
